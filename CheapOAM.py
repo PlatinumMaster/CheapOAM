@@ -26,6 +26,8 @@ def parseOAM(input, output):
 				out.write(f'Entry{cell}:\n')
 				for sub in range(2):
 					x, y, size_x, size_y, cell_x, cell_y = struct.unpack('<LLLLLL', rand.read(struct.calcsize('<LLLLLL')))
+					x = x - 0x1000000 if x > 0x7FFFFF else x
+					y = y - 0x1000000 if y > 0x7FFFFF else y
 					out.write(f'\tsubentry {x}, {y}, {hex(size_x)}, {hex(size_y)}, {hex(cell_x)}, {hex(cell_y)}\n')
 				out.write('\n')
 			while rand.tell() != os.path.getsize(input):
@@ -38,6 +40,7 @@ def parseASM(input, output):
 	OBJ = ['arm-none-eabi-objcopy', '-O', 'binary', 'temp.o', output]
 	subprocess.run(AS)
 	subprocess.run(OBJ)
+	os.remove('temp.o')
 
 def usage():
 	return f'''{sys.argv[0]} - USAGE
@@ -45,7 +48,7 @@ def usage():
 	Make: python {sys.argv[0]} make <in> <out>'''
 
 def __main__():
-	if len(sys.argv) == 3:
+	if len(sys.argv) == 4:
 		if sys.argv[1].lower() == 'dump':
 			parseOAM(sys.argv[2], sys.argv[3])
 		elif sys.argv[1].lower() == 'make':
